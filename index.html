@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>wavesurfer + rain.js</title>
+    <script src="wavesurfer.js"></script>
+    <script src="wavesurfer.regions.js"></script>
+    <script src="rain.js"></script>
+</head>
+
+<body>
+    <button class="btn btn-primary" onclick="play()">Play</button>
+    <div id="waveform" style="width: 600px;height:300px;"></div>
+    <canvas id="bot" style="width:1200px;height:300px;background:#ccc;"></canvas>
+
+    <script language="javascript" type="text/javascript">
+        var rain = new RAIN();
+        rain.init(
+            true, //垂直语图模式
+            1024, 300, //数据缓冲
+            "bot", 0, 0, 1024, 300 //放大效果
+        );
+
+        var wavesurfer;
+
+        // Init & load
+        document.addEventListener('DOMContentLoaded', function () {
+            // Create an instance
+            var options = {
+                container: '#waveform',
+                scrollParent: false,
+                hideScrollbar: true,
+                partialRender: false,
+                fillParent: false,
+                pixelRatio: 1,
+                progressColor: 'rgba(128,85,85,0.24)',
+                splitChannels: true,
+                autoCenter: true,
+                wight: 800,
+                // height: w.innerHeight - 168,
+                plugins: [
+                    WaveSurfer.regions.create({
+                        dragSelection: {
+                            slop: 5
+                        }
+                    })
+                ]
+            };
+            wavesurfer = WaveSurfer.create(options);
+            wavesurfer.load('./demo.mp3');
+
+            //learn from engine.js
+            wavesurfer.on('audioprocess', function (time, stamp) {
+                var bufferLengthAlt = wavesurfer.backend.analyser.frequencyBinCount;
+                var dataArrayAlt = new Uint8Array(bufferLengthAlt);
+                wavesurfer.backend.analyser.getByteFrequencyData(dataArrayAlt);
+                // console.log(dataArrayAlt);
+                rain.push(dataArrayAlt);
+            });
+        });
+
+        var play = function () {
+            wavesurfer.playPause();
+        }
+    </script>
+
+</body>
+
+</html>
